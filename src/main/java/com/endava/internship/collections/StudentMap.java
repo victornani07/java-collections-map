@@ -6,6 +6,7 @@ public class StudentMap implements Map<Student, Integer> {
     private Node root;
     private Integer lastOverriddenValue;
     private Integer lastRemovedValue;
+    private Boolean foundKey;
 
     private static class Node {
         private Student key;
@@ -29,6 +30,7 @@ public class StudentMap implements Map<Student, Integer> {
         root = null;
         lastOverriddenValue = null;
         lastRemovedValue = null;
+        foundKey = false;
     }
 
     @Override
@@ -52,13 +54,18 @@ public class StudentMap implements Map<Student, Integer> {
         if (!(o instanceof Student)) {
             return false;
         }
+        foundKey = false;
         s = (Student) o;
-        return searchKeyReturnValue(root, s) != null;
+        searchKeyReturnValue(root, s);
+        return foundKey;
     }
 
     @Override
     public boolean containsValue(Object o) {
         Integer i;
+
+        if(o == null)
+            return searchValue(root, null);
 
         if (!(o instanceof Integer)) {
             return false;
@@ -84,6 +91,9 @@ public class StudentMap implements Map<Student, Integer> {
 
     @Override
     public Integer put(Student student, Integer integer) {
+        if(student == null) {
+            throw new NullPointerException();
+        }
         lastOverriddenValue = null;
         root = putPair(root, student, integer);
         return lastOverriddenValue;
@@ -168,6 +178,7 @@ public class StudentMap implements Map<Student, Integer> {
         }
 
         if (s.equals(root.key)) {
+            foundKey = true;
             return root.value;
         }
 
@@ -182,9 +193,14 @@ public class StudentMap implements Map<Student, Integer> {
             return false;
         }
 
-        if (i.intValue() == root.value.intValue()) {
+        if(i == null && root.value == null) {
             return true;
         }
+
+        if(i != null && (i.equals(root.value))) {
+            return true;
+        }
+
         return searchValue(root.left, i) || searchValue(root.right, i);
     }
 
