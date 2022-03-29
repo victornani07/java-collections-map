@@ -2,7 +2,7 @@ package com.endava.internship.collections;
 
 import java.util.*;
 
-public class StudentMap<K extends Comparable<K>, V> implements Map<K, V> {
+public class GenericTreeMap<K extends Comparable<K>, V> implements Map<K, V> {
 
     private static class Node<K, V> {
         private K key;
@@ -25,6 +25,14 @@ public class StudentMap<K extends Comparable<K>, V> implements Map<K, V> {
     private Node<K, V> root;
     private V lastAddedValue;
     private V lastRemovedValue;
+    private Boolean foundKey;
+
+    public GenericTreeMap() {
+        root = null;
+        lastRemovedValue = null;
+        lastAddedValue = null;
+        foundKey = false;
+    }
 
     @Override
     public int size() {
@@ -38,25 +46,22 @@ public class StudentMap<K extends Comparable<K>, V> implements Map<K, V> {
 
     @Override
     public boolean containsKey(Object o) {
+        foundKey = false;
+
         if(o == null) {
             throw new NullPointerException();
         }
 
         @SuppressWarnings("unchecked")
         Comparable<? super K> key = (Comparable<? super K>) o;
-
-        return getValueByKey(root, key) != null;
+        getValueByKey(root, key);
+        return foundKey;
     }
 
     @Override
     public boolean containsValue(Object o) {
-        if(o == null) {
-            throw new NullPointerException();
-        }
-
         @SuppressWarnings("unchecked")
                 Comparable<? super V> value = (Comparable<? super V>) o;
-
         return searchValue(root, value);
     }
 
@@ -68,36 +73,31 @@ public class StudentMap<K extends Comparable<K>, V> implements Map<K, V> {
 
         @SuppressWarnings("unchecked")
                 Comparable<? super K> key = (Comparable<? super K>) o;
-
         return getValueByKey(root, key);
     }
 
     @Override
     public V put(K key, V value) {
+        lastAddedValue = null;
+
         if(key == null) {
             throw new NullPointerException();
         }
-
-        lastAddedValue = null;
-
         root = putPair(root, key, value);
-
         return lastAddedValue;
     }
 
     @Override
     public V remove(Object o) {
+        lastRemovedValue = null;
+
         if(o == null) {
             throw new NullPointerException();
         }
 
-        lastRemovedValue = null;
-
         @SuppressWarnings("unchecked")
                 Comparable<? super K> key = (Comparable<? super K>) o;
-
         root = removeKey(root, key);
-
         return lastRemovedValue;
     }
 
@@ -116,27 +116,21 @@ public class StudentMap<K extends Comparable<K>, V> implements Map<K, V> {
     @Override
     public Set<K> keySet() {
         Set<K> s = new HashSet<>();
-
         collectKeys(root, s);
-
         return s;
     }
 
     @Override
     public Collection<V> values() {
         Collection<V> c = new ArrayList<>();
-
         collectValues(root, c);
-
         return c;
     }
 
     @Override
     public Set<Entry<K, V>> entrySet() {
         Set<Entry<K, V>> s = new HashSet<>();
-
         collectKeysAndValues(root, s);
-
         return s;
     }
 
@@ -163,6 +157,7 @@ public class StudentMap<K extends Comparable<K>, V> implements Map<K, V> {
         }
 
         if(key.equals(root.key)) {
+            foundKey = true;
             return root.value;
         }
 
@@ -205,7 +200,6 @@ public class StudentMap<K extends Comparable<K>, V> implements Map<K, V> {
             minKey = root.left.key;
             root = root.left;
         }
-
         return minKey;
     }
 
@@ -214,10 +208,13 @@ public class StudentMap<K extends Comparable<K>, V> implements Map<K, V> {
             return false;
         }
 
-        if(value.equals(root.value)) {
+        if(value == null && root.value == null) {
             return true;
         }
 
+        if(value != null && value.equals(root.value)) {
+            return true;
+        }
         return searchValue(root.left, value) || searchValue(root.right, value);
     }
 
@@ -228,7 +225,6 @@ public class StudentMap<K extends Comparable<K>, V> implements Map<K, V> {
 
         root.left = clearMap(root.left);
         root.right = clearMap(root.right);
-
         return null;
     }
 
